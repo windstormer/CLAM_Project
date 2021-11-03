@@ -67,7 +67,7 @@ if __name__ == '__main__':
     modality = args.modality
     classifier_path = args.classifier_path
 
-    dataset_path = "/hdd1/vincent18/"
+    dataset_path = "/work/vincent18/"
     input_path = os.path.join(dataset_path, args.input_path)
 
     assert classifier_path != '', 'classifier_path not given'

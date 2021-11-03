@@ -83,7 +83,7 @@ if __name__ == '__main__':
     modality = args.modality
     record_path = "record"
 
-    dataset_path = "/hdd1/vincent18/"
+    dataset_path = "/work/vincent18/"
     input_path = os.path.join(dataset_path, args.input_path)
 
     assert modality in ['flair', 't1', 't1ce', 't2'], 'error modality given'
