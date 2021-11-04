@@ -156,9 +156,10 @@ if __name__ == '__main__':
     label_path = glob.glob(os.path.join(input_path, modality, "validate", "seg", "*.png"))
     print("Num of Tumor Data:", len(tumor_path))
     # print("Num of Normal Data:", len(normal_path))
-    print("Num of Seg Data:", len(seg_path))
-    data_list = tumor_path
-    label_list = seg_path
+    print("Num of Seg Data:", len(label_path))
+    tumor_path.sort()
+    data_list = tumor_path[:1000]
+    label_list = label_path
     print("Data length", len(data_list))
     print("Label length", len(label_list))
     # label_list = []
