@@ -10,7 +10,6 @@ from dataset import *
 from cam import CAM
 from scorecam import ScoreCAM
 from clam import CLAM
-from clam_acc import CLAMACC
 from sklearn.model_selection import train_test_split
 import csv
 
@@ -54,7 +53,7 @@ if __name__ == '__main__':
                         '-c',
                         type=str, 
                         default="CLAM",
-                        choices=['CAM', 'ScoreCAM', 'CLAM', 'CLAMACC'],
+                        choices=['CAM', 'ScoreCAM', 'CLAM'],
                         help="CAM technology")
 
     # args parse
@@ -97,8 +96,6 @@ if __name__ == '__main__':
         cam_object = ScoreCAM(project_path, classifier_path, exp_name, encoder_model_type)
     elif args.cam == 'CLAM':
         cam_object = CLAM(project_path, classifier_path, exp_name, encoder_model_type)
-    elif args.cam == 'CLAMACC':
-        cam_object = CLAMACC(project_path, classifier_path, exp_name, encoder_model_type)
     print("============== Start Testing Tumor ===============")
     test_id = ['00183-66', '00300-98', '00459-66', '00472-52', '01119-42', '01232-108', '01284-113', '01388-118', '01468-50', '01573-101']
     tumor_new_path = []

@@ -18,8 +18,8 @@ from postprocess import *
 
 class ScoreCAM(object):
     def __init__(self, project_path, classifier_path, exp_name, encoder_model_type):
-        encoder_path = os.path.join(project_path, "record", classifier_path.replace("normal_erase_",""), "model", "encoder.pth")
-        decoder_path = os.path.join(project_path, "record", classifier_path.replace("normal_erase_",""), "model", "decoder.pth")
+        encoder_path = os.path.join(project_path, "record", classifier_path, "model", "encoder.pth")
+        decoder_path = os.path.join(project_path, "record", classifier_path, "model", "decoder.pth")
         eval_enet_path = os.path.join(project_path, "record", classifier_path, "model", "encoder.pth")
         eval_dnet_path = os.path.join(project_path, "record", classifier_path, "model", "decoder.pth")
         self.encoder_model_type = encoder_model_type
