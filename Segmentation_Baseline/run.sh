@@ -1,1 +1,2 @@
-python3 main.py -m t1
+#! /bin/bash
+python3 main.py -m t2

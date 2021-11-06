@@ -43,7 +43,7 @@ class ScoreCAM(object):
             param.requires_grad = False  
         for param in self.eval_dnet.parameters():
             param.requires_grad = False   
-        self.result_path = os.path.join(project_path, "record", exp_name)
+        self.result_path = os.path.join(project_path, "results", exp_name)
         if not os.path.exists(self.result_path):
             os.makedirs(self.result_path)
 
