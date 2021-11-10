@@ -208,10 +208,11 @@ class SNet(object):
         test_bar = tqdm(loader)
         total_loss, total_num = 0.0, 0
         test_labels = []
+        case_name = []
         pred_results = []
         out_results = []
         with torch.no_grad():
-            for case_batch, label_batch in test_bar:
+            for case_name_batch, case_batch, label_batch in test_bar:
                 loss, pred_batch, out_batch = self.step(case_batch, label_batch)
 
                 total_num += self.batch_size
@@ -219,12 +220,20 @@ class SNet(object):
                 pred_results.append(pred_batch)
                 test_labels.append(label_batch)
                 out_results.append(out_batch)
+                for c in case_name_batch:
+                    case_name.append(c)
         pred_results = torch.cat(pred_results, dim=0).numpy()
         test_labels = torch.cat(test_labels, dim=0).numpy()
         out_results = torch.cat(out_results, dim=0).numpy()
         # print(pred_results.shape)
         # print(test_labels.shape)
         dice_score, iou_score = self.evaluate(test_labels, out_results)
+        # log_file = open(self.log_path, "a")
+        # bad_case = []
+        # for idx, d in enumerate(dice_score):
+        #     if d < 0.7:
+        #         bad_case.append("{}".format(case_name[idx].split(os.path.sep)[-1][:-4]))
+        # print(bad_case)
         return total_loss / total_num, dice_score, iou_score
 
     def evaluate(self, labels, pred):

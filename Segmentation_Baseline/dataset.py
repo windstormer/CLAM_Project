@@ -28,7 +28,7 @@ class SDataset(Dataset):
             img = Image.open(label_path)
             label = self.transform(img)
             label = torch.where(label*4 > 0, 1.0, 0.0)
-        return tensor, label.float()
+        return path, tensor, label.float()
     
     def __len__(self):
         return len(self.data)
