@@ -77,7 +77,7 @@ if __name__ == '__main__':
     parser.add_argument("--encoder_model_type",
                         type=str,
                         default="SSL",
-                        help="Type of Model [SSL, UNet, DLab]")          
+                        help="Type of Model [SSL, UNet, DLab, Res50]")          
 
     # args parse
     args = parser.parse_args()

@@ -32,6 +32,9 @@ class ScoreCAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res50':
+            self.encoder = Res50(encoder_path).cuda()
+            self.eval_enet = Res50(eval_enet_path).cuda()
 
         for param in self.encoder.parameters():
             param.requires_grad = False
@@ -118,7 +121,7 @@ class ScoreCAM(object):
                 final_map = np.maximum(final_map, 0)
 
                 f = final_map
-                first_seg, final_seg = gen_seg_mask(input_image, f)
+                first_seg, final_seg = gen_seg_mask(input_image, f, img_name, self.result_path)
                 
                 seg_gt = (seg_image*4).astype(np.uint8)
                 whole_gt = np.where(seg_gt!=0, 1, 0)

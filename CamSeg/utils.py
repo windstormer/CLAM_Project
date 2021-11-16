@@ -30,6 +30,7 @@ def print_seg_contour(result_path, img, ground_truth, first_seg, second_seg, fin
     title = "Segmentation Contour Evolution"
     ax[1].set_title(title, fontsize=12)
     plt.savefig(os.path.join(save_path, "postprocess.png"))
+    plt.close()
 
     
 def print_hist(result_path, img_pixel, threshold, img_name):
@@ -40,3 +41,4 @@ def print_hist(result_path, img_pixel, threshold, img_name):
     plt.axvline(x=threshold, color='red')
     plt.title('Thres: {}'.format(threshold))
     plt.savefig(os.path.join(save_path, "hist.png"))
+    plt.close()

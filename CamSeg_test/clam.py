@@ -32,6 +32,9 @@ class CLAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res50':
+            self.encoder = Res50(encoder_path).cuda()
+            self.eval_enet = Res50(eval_enet_path).cuda()
 
         for param in self.encoder.parameters():
             param.requires_grad = False
@@ -85,8 +88,8 @@ class CLAM(object):
             for img_name, case_batch, seg_batch in test_bar:
                 img_name = img_name[0][:-4]
                 seg_image = seg_batch[0].permute(1, 2, 0).squeeze(2).numpy()
-                if not os.path.exists(os.path.join(self.result_path, img_name)):
-                    os.makedirs(os.path.join(self.result_path, img_name))
+                if not os.path.exists(os.path.join(self.result_path, img_name, "feat_map")):
+                    os.makedirs(os.path.join(self.result_path, img_name, "feat_map"))
                 feat_maps, confidence, _, rep = self.step(case_batch)
                 origin_conf = self.eval_step(case_batch)
                 norm_feat_map = []
@@ -109,6 +112,10 @@ class CLAM(object):
                     _, conf, _, _ = self.step(featured_tensor.cuda())
                     featured_conf.append(conf)
                     norm_feat_map.append(feat_map.squeeze(2).numpy())
+                
+                for idx, feat in enumerate(norm_feat_map):
+                    heat_feat = self.heatmap_postprocess(feat)
+                    io.imsave(os.path.join(self.result_path, img_name, "feat_map", "{}.jpg".format(idx)), img_as_ubyte(heat_feat), check_contrast=False)
 
                 fc_weight = self.get_cam_weight()
                 norm_feat_map = np.asarray(norm_feat_map)
@@ -124,7 +131,7 @@ class CLAM(object):
                 final_map = np.maximum(final_map, 0)
 
                 f = final_map
-                first_seg, final_seg = gen_seg_mask(input_image, f)
+                first_seg, final_seg = gen_seg_mask(input_image, f, img_name, self.result_path)
                 
                 seg_gt = (seg_image*4).astype(np.uint8)
 

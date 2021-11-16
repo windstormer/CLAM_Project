@@ -24,6 +24,8 @@ class SSL(object):
             model = SSLModel()
         elif model_type == "DLab":
             model = DeepLabModel()
+        elif model_type == "Res50":
+            model = Res50()
         # model = SSLModel(None)
 
         if len(gpuid) > 1:

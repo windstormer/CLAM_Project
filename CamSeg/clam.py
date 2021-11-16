@@ -32,6 +32,9 @@ class CLAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res50':
+            self.encoder = Res50(encoder_path).cuda()
+            self.eval_enet = Res50(eval_enet_path).cuda()
 
         for param in self.encoder.parameters():
             param.requires_grad = False
@@ -145,7 +148,7 @@ class CLAM(object):
                     tumor_erase = tumor_erase.unsqueeze(0).permute(0, 3, 1, 2)
                     tumor_erase_conf = self.eval_step(tumor_erase.cuda())
                     
-                    conf_drop_rate = ((origin_conf[0] - tumor_erase_conf[0])/origin_conf[0]).numpy()
+                    conf_drop_rate = np.maximum(0, ((origin_conf[0] - tumor_erase_conf[0])/origin_conf[0]).numpy())
                     print("Img Name:", img_name, ", Tumor Confidence:", origin_conf[0].numpy(), "->", tumor_erase_conf[0].numpy())
                     print("Dice Score:", first_dice, "->", dice)
                     print("IOU Score:", first_iou, "->", iou)

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models import resnet18
+from torchvision.models import resnet18, resnet50
 from collections import OrderedDict
 from torchvision.models.segmentation import deeplabv3_resnet50
 
@@ -20,6 +20,25 @@ class SSLModel(nn.Module):
         out = self.g(feature)
         return feature, out
 
+class Res50(nn.Module):
+    def __init__(self):
+        super(Res50, self).__init__()
+
+        resnet = resnet50(pretrained=False, norm_layer=nn.InstanceNorm2d)
+        self.f = nn.Sequential(*list(resnet.children())[:-2])
+        self.outc = nn.Sequential(nn.Conv2d(2048, 512, kernel_size=1), nn.ReLU(inplace=True))
+
+        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
+        # projection head
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
+    def forward(self, x):
+        x = self.f(x)
+        x = self.outc(x)
+        x = self.gap(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return feature, out
 
 class SSLModel_Inference(nn.Module):
     def __init__(self, pretrain_path=None):
@@ -44,6 +63,7 @@ class SSLModel_Inference(nn.Module):
         x = self.f(x)
         feature = torch.flatten(x, start_dim=1)
         return feature
+
 
 
 class UNetModel(nn.Module):
