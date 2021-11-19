@@ -18,17 +18,17 @@ from postprocess import *
 
 class ScoreCAM(object):
     def __init__(self, project_path, classifier_path, exp_name, encoder_model_type):
-        encoder_path = os.path.join(project_path, "record", classifier_path, "model", "encoder.pth")
-        decoder_path = os.path.join(project_path, "record", classifier_path, "model", "decoder.pth")
-        eval_enet_path = os.path.join(project_path, "record", classifier_path, "model", "encoder.pth")
-        eval_dnet_path = os.path.join(project_path, "record", classifier_path, "model", "decoder.pth")
+        encoder_path = os.path.join(project_path, "record/CNet", classifier_path, "model", "encoder.pth")
+        decoder_path = os.path.join(project_path, "record/CNet", classifier_path, "model", "decoder.pth")
+        eval_enet_path = os.path.join(project_path, "record/CNet", classifier_path, "model", "encoder.pth")
+        eval_dnet_path = os.path.join(project_path, "record/CNet", classifier_path, "model", "decoder.pth")
         self.encoder_model_type = encoder_model_type
         if encoder_model_type == 'UNet':
             self.encoder = UNetModel(encoder_path).cuda()
             self.eval_enet = UNetModel(eval_enet_path).cuda()
-        elif encoder_model_type == 'SSL':
-            self.encoder = SSLModel(encoder_path).cuda()
-            self.eval_enet = SSLModel(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res18':
+            self.encoder = Res18(encoder_path).cuda()
+            self.eval_enet = Res18(eval_enet_path).cuda()
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()

@@ -207,9 +207,9 @@ class UNetModel(nn.Module):
         # out = self.g(feature)
         return mask, feature
 
-class SSLModel(nn.Module):
+class Res18(nn.Module):
     def __init__(self, pretrain_path=None):
-        super(SSLModel, self).__init__()
+        super(Res18, self).__init__()
         self.handlers = []
         resnet = resnet18(pretrained=False, norm_layer=nn.InstanceNorm2d)
         self.f = nn.Sequential(*list(resnet.children())[:-2])

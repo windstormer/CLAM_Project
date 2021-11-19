@@ -29,6 +29,11 @@ if __name__ == '__main__':
                         default=None,
                         help="pretrained encoder model")
 
+    parser.add_argument("--encoder_pretrain_method",
+                        type=str,
+                        default="SimCLR",
+                        help="method of pretrained encoder model")
+
     parser.add_argument("--gpu_id",
                         type=str,
                         default ='',
@@ -76,8 +81,8 @@ if __name__ == '__main__':
 
     parser.add_argument("--encoder_model_type",
                         type=str,
-                        default="SSL",
-                        help="Type of Model [SSL, UNet, DLab, Res50]")          
+                        default="Res18",
+                        help="Type of Model [Res18, UNet, DLab, Res50]")          
 
     # args parse
     args = parser.parse_args()
@@ -97,7 +102,8 @@ if __name__ == '__main__':
     learning_rate = args.learning_rate
     modality = args.modality
     encoder_mode = args.encoder_mode
-    record_path = "record"
+    record_path = "record/CNet"
+    ssl_record_path = "record/{}".format(args.encoder_pretrain_method)
 
     dataset_path = "/work/vincent18/"
     input_path = os.path.join(dataset_path, args.input_path)
@@ -109,7 +115,7 @@ if __name__ == '__main__':
         pretrain_epoch = int(sections[2][2:])
         encoder_model_type = sections[0]
         encoder_model = args.encoder_model
-        encoder_model_path = os.path.join(args.project_path, record_path, args.encoder_model, "model", "self_model_{}.pth".format(pretrain_epoch))
+        encoder_model_path = os.path.join(args.project_path, ssl_record_path, args.encoder_model, "model", "self_model_{}.pth".format(pretrain_epoch))
     else:
         encoder_model_path = None
         encoder_model = args.encoder_model_type + "_None"

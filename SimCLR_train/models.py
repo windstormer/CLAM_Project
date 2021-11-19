@@ -5,8 +5,69 @@ from torchvision.models import resnet18, resnet50
 from collections import OrderedDict
 from torchvision.models.segmentation import deeplabv3_resnet50
 
-class UNetModel(nn.Module):
+class Res18(nn.Module):
+    def __init__(self):
+        super(Res18, self).__init__()
+
+        resnet = resnet18(pretrained=False, norm_layer=nn.InstanceNorm2d)
+        self.f = nn.Sequential(*list(resnet.children())[:-1])
+        # projection head
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
+    def forward(self, x):
+        x = self.f(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return feature, out
+
+class Res50(nn.Module):
+    def __init__(self):
+        super(Res50, self).__init__()
+
+        resnet = resnet50(pretrained=False, norm_layer=nn.InstanceNorm2d)
+        self.f = nn.Sequential(*list(resnet.children())[:-2])
+        self.outc = nn.Sequential(nn.Conv2d(2048, 512, kernel_size=1), nn.ReLU(inplace=True))
+
+        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
+        # projection head
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
+    def forward(self, x):
+        x = self.f(x)
+        x = self.outc(x)
+        x = self.gap(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return feature, out
+
+class SSLModel_Inference(nn.Module):
     def __init__(self, pretrain_path=None):
+        super(SSLModel_Inference, self).__init__()
+        self.f = []
+
+        resnet = resnet18(pretrained=False, norm_layer=nn.InstanceNorm2d)
+        self.f = nn.Sequential(*list(resnet.children())[:-1])
+
+        if pretrain_path != None:
+            print("Model restore from", pretrain_path)
+            state_dict_weights = torch.load(pretrain_path)
+            state_dict_init = self.state_dict()
+            new_state_dict = OrderedDict()
+            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
+                name = k_0
+                new_state_dict[name] = v
+                print(k, k_0)
+            self.load_state_dict(new_state_dict, strict=False)
+
+    def forward(self, x):
+        x = self.f(x)
+        feature = torch.flatten(x, start_dim=1)
+        return feature
+
+
+
+class UNetModel(nn.Module):
+    def __init__(self):
         super(UNetModel, self).__init__()
 
         self.first = nn.Sequential(
@@ -94,21 +155,8 @@ class UNetModel(nn.Module):
 
         self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
         # projection head
-        # self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
-        
-        if pretrain_path != None:
-            print("Model restore from", pretrain_path)
-            state_dict_weights = torch.load(pretrain_path)
-            state_dict_init = self.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-                print(k, k_0)
-            self.load_state_dict(new_state_dict, strict=False)
-        else:
-            print("Model from scratch")
-
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
     def forward(self, x):
         x1 = self.first(x)
         x2 = self.down1(x1)
@@ -124,37 +172,12 @@ class UNetModel(nn.Module):
         
         x = self.gap(x)
         feature = torch.flatten(x, start_dim=1)
-        # out = self.g(feature)
-        return feature
+        out = self.g(feature)
+        return feature, out
 
-class Res18(nn.Module):
-    def __init__(self, pretrain_path=None):
-        super(Res18, self).__init__()
-
-        resnet = resnet18(pretrained=False, norm_layer=nn.InstanceNorm2d)
-        self.f = nn.Sequential(*list(resnet.children())[:-1])
-
-        if pretrain_path != None:
-            print("Model restore from", pretrain_path)
-            state_dict_weights = torch.load(pretrain_path)
-            # print(state_dict_weights.keys())
-            state_dict_init = self.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-                print(k, k_0)
-            self.load_state_dict(new_state_dict, strict=False)
-        else:
-            print("Model from scratch")
-            
-    def forward(self, x):
-        x = self.f(x)
-        feature = torch.flatten(x, start_dim=1)
-        return feature
 
 class DeepLabModel(nn.Module):
-    def __init__(self, pretrain_path=None):
+    def __init__(self):
         super(DeepLabModel, self).__init__()
 
         self.f = deeplabv3_resnet50(pretrained=False, num_classes=512)
@@ -169,21 +192,7 @@ class DeepLabModel(nn.Module):
 
         self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
         # projection head
-        # self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
-
-        if pretrain_path != None:
-            print("Model restore from", pretrain_path)
-            state_dict_weights = torch.load(pretrain_path)
-            # print(state_dict_weights.keys())
-            state_dict_init = self.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-                print(k, k_0)
-            self.load_state_dict(new_state_dict, strict=False)
-        else:
-            print("Model from scratch")
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
             
     def forward(self, x):
         x = self.f(x)
@@ -191,51 +200,5 @@ class DeepLabModel(nn.Module):
         # x = self.p(x)
         x = self.gap(x)
         feature = torch.flatten(x, start_dim=1)
-        # out = self.g(feature)
-        return feature
-
-class Res50(nn.Module):
-    def __init__(self, pretrain_path=None):
-        super(Res50, self).__init__()
-
-        resnet = resnet50(pretrained=False, norm_layer=nn.InstanceNorm2d)
-        self.f = nn.Sequential(*list(resnet.children())[:-2])
-        self.outc = nn.Sequential(nn.Conv2d(2048, 512, kernel_size=1), nn.ReLU(inplace=True))
-
-        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
-        # projection head
-        # self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
-        if pretrain_path != None:
-            print("Model restore from", pretrain_path)
-            state_dict_weights = torch.load(pretrain_path)
-            # print(state_dict_weights.keys())
-            state_dict_init = self.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-                print(k, k_0)
-            self.load_state_dict(new_state_dict, strict=False)
-        else:
-            print("Model from scratch")
-            
-    def forward(self, x):
-        x = self.f(x)
-        x = self.outc(x)
-        x = self.gap(x)
-        feature = torch.flatten(x, start_dim=1)
-        # out = self.g(feature)
-        return feature
-
-
-class CModel(nn.Module):
-    def __init__(self, input_dim):
-        super(CModel, self).__init__()
-        self.decoder = nn.Sequential(
-            nn.Linear(input_dim, 1)
-            )
-        
-            
-    def forward(self, x):
-        pred = self.decoder(x)
-        return pred
+        out = self.g(feature)
+        return feature, out

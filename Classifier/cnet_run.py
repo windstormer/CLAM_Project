@@ -23,8 +23,8 @@ class CNet(object):
         if self.encoder_mode != "fixed":
             if encoder_model_type == 'UNet':
                 self.encoder = UNetModel(encoder_model_path)
-            elif encoder_model_type == 'SSL':
-                self.encoder = SSLModel(encoder_model_path)
+            elif encoder_model_type == 'Res18':
+                self.encoder = Res18(encoder_model_path)
             elif encoder_model_type == 'DLab':
                 self.encoder = DeepLabModel(encoder_model_path)
             elif encoder_model_type == 'Res50':
@@ -33,8 +33,8 @@ class CNet(object):
         else:
             if encoder_model_type == 'UNet':
                 self.encoder = UNetModel(encoder_model_path)
-            elif encoder_model_type == 'SSL':
-                self.encoder = SSLModel(encoder_model_path)
+            elif encoder_model_type == 'Res18':
+                self.encoder = Res18(encoder_model_path)
             elif encoder_model_type == 'DLab':
                 self.encoder = DeepLabModel(encoder_model_path)
             elif encoder_model_type == 'Res50':
