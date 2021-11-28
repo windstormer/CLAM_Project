@@ -125,8 +125,8 @@ if __name__ == '__main__':
     
     model_name = "CNet_{}_ep{}_b{}".format(modality, epochs, batch_size)
     model_name += ".{{{}}}".format(encoder_model)
-    if encoder_mode == 'finetuned':
-        model_name += ".finetuned"
+    if encoder_mode != 'scratch':
+        model_name += ".{}".format(encoder_mode)
 
     if suffix != None:
         model_name = model_name + ".{}".format(suffix)
