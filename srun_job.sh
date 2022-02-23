@@ -9,8 +9,11 @@ source activate torch
 dir=$(dirname "$1")
 cd $dir
 
-for script in "$@"
-do
-    script_name=$(basename "$script")
-    srun $script_name
-done
+script_name=$(basename "$1")
+# echo $script_name $2
+srun $script_name $2
+# for script in "$@"
+# do
+#     script_name=$(basename "$script")
+#     srun $script_name
+# done

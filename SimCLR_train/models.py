@@ -202,3 +202,28 @@ class DeepLabModel(nn.Module):
         feature = torch.flatten(x, start_dim=1)
         out = self.g(feature)
         return feature, out
+
+class CNNModel(nn.Module):
+    def __init__(self):
+        super(CNNModel, self).__init__()
+        self.model = nn.Sequential(
+        nn.Conv2d(3, 128, kernel_size=3, padding=3//2),
+        nn.MaxPool2d(2),
+        nn.Conv2d(128, 128, 3, padding=3//2),
+        nn.BatchNorm2d(128),
+        nn.Conv2d(128, 128, 3, stride=2, padding=3//1),
+        nn.Conv2d(128, 128, 5, padding=5//2),
+        nn.BatchNorm2d(128),
+        nn.Sequential(nn.Conv2d(128, 512, kernel_size=1), nn.ReLU(inplace=True))
+        )
+
+        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
+        # projection head
+        self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
+    def forward(self, x):
+        x = self.model(x)
+        x = self.gap(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return feature, out

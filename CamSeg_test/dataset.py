@@ -19,6 +19,7 @@ class FeatureDataset(Dataset):
         img_name = path.split(os.path.sep)[-1]
         # img_name = path.split("_")[-1]
         # print(img_name)
+        seg_tensor = torch.zeros((1,240,240))
         for seg_path in self.seg:
             if img_name[:-3] in seg_path:
                 seg_img = Image.open(seg_path)

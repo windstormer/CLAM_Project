@@ -68,18 +68,18 @@ class SNet(object):
                 .format(epoch, self.epochs, train_loss, dice, iou))
             log_file.close()
 
-            val_loss, dice, iou = self.val(epoch)
+            val_loss, dice, iou, dice_std, iou_std = self.val(epoch)
             val_record['loss'].append(val_loss)
             val_record['dice'].append(dice)
             log_file = open(self.log_path, "a")
             log_file.writelines(
-                "Epoch {:4d}/{:4d} | Val Loss: {}, Val Dice: {}, IOU: {}\n"
-                .format(epoch, self.epochs, val_loss, dice, iou))
+                "Epoch {:4d}/{:4d} | Val Loss: {}, Val Dice: {}+={}, IOU: {}+={}\n"
+                .format(epoch, self.epochs, val_loss, dice, dice_std, iou, iou_std))
             
             cur_score = dice
             if cur_score > best_score:
                 best_score = cur_score
-                log_file.writelines("Save model at Epoch {:4d}/{:4d} | Val Loss: {}, Val Dice: {}, IOU: {}\n".format(epoch, self.epochs, val_loss, dice, iou))
+                log_file.writelines("Save model at Epoch {:4d}/{:4d} | Val Loss: {}, Val Dice: {}+={}, IOU: {}+={}\n".format(epoch, self.epochs, val_loss, dice, dice_std, iou, iou_std))
                 encoder_path = os.path.join(self.project_path, self.record_path, self.model_name, "model", "encoder.pth")
                 torch.save(self.encoder.state_dict(), encoder_path)
             log_file.close()
@@ -127,7 +127,7 @@ class SNet(object):
 
             # exit(0)
 
-            dice_score, iou_score = self.evaluate(label_batch.numpy(), out_batch.numpy())
+            dice_score, iou_score, dice_std, iou_std = self.evaluate(label_batch.numpy(), out_batch.numpy())
             dice_batch.append(dice_score)
             iou_batch.append(iou_score)
         # print(pred_results.shape)
@@ -187,9 +187,9 @@ class SNet(object):
         out_results = torch.cat(out_results, dim=0).numpy()
         # print(pred_results.shape)
         # print(val_labels.shape)
-        dice_score, iou_score = self.evaluate(val_labels, out_results)
+        dice_score, iou_score, dice_std, iou_std = self.evaluate(val_labels, out_results)
         self.encoder.train()
-        return total_loss / total_num, dice_score, iou_score
+        return total_loss / total_num, dice_score, iou_score, dice_std, iou_std
 
     def test(self, loader, load_model=None):
         self.encoder.eval()
@@ -227,14 +227,14 @@ class SNet(object):
         out_results = torch.cat(out_results, dim=0).numpy()
         # print(pred_results.shape)
         # print(test_labels.shape)
-        dice_score, iou_score = self.evaluate(test_labels, out_results)
-        # log_file = open(self.log_path, "a")
+        dice_score, iou_score, dice_std, iou_std = self.evaluate(test_labels, out_results)
+
         # bad_case = []
         # for idx, d in enumerate(dice_score):
         #     if d < 0.7:
         #         bad_case.append("{}".format(case_name[idx].split(os.path.sep)[-1][:-4]))
         # print(bad_case)
-        return total_loss / total_num, dice_score, iou_score
+        return total_loss / total_num, dice_score, iou_score, dice_std, iou_std
 
     def evaluate(self, labels, pred):
         dice_batch = []
@@ -246,7 +246,8 @@ class SNet(object):
             iou_batch.append(iou_score)
         dice_batch = np.asarray(dice_batch)
         iou_batch = np.asarray(iou_batch)
-        return dice_batch.mean(), iou_batch.mean()
+        return dice_batch.mean(), iou_batch.mean(), dice_batch.std(), iou_batch.std()
+        # return dice_batch, iou_batch
 
     def compute_dice(self, gt, gen):
         # print(gen.dtype, gt.dtype)

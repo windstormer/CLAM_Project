@@ -63,7 +63,7 @@ else
 	  nodelist=--nodelist=$nodelist
 fi
 
-if [ -z ${path} ]
+if [ -z "${path}" ]
 then
     printf -- '-%.0s' {1..20}; echo ""
     echo "Run script does not be specified yet."

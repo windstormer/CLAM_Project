@@ -70,7 +70,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_type",
                         type=str,
                         default="Res18",
-                        help="Type of Model [Res18, UNet, DLab, Res50]")
+                        help="Type of Model [Res18, UNet, DLab, Res50, CNN]")
 
     # args parse
     args = parser.parse_args()
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     input_path = os.path.join(dataset_path, args.input_path)
 
     assert modality in ['flair', 't1', 't1ce', 't2'], 'error modality given'
-    assert model_type in ["Res18", "UNet", "DLab", "Res50"], 'error model type given'
+    assert model_type in ["Res18", "UNet", "DLab", "Res50", "CNN"], 'error model type given'
 
     model_name = "{}_{}_ep{}_b{}".format(model_type, modality, epochs, batch_size)
     if unsupervised:

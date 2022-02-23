@@ -26,6 +26,8 @@ class SimCLR(object):
             model = DeepLabModel()
         elif model_type == "Res50":
             model = Res50()
+        elif model_type == "CNN":
+            model = CNNModel()
         # model = SSLModel(None)
 
         if len(gpuid) > 1:

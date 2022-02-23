@@ -97,10 +97,15 @@ if __name__ == '__main__':
     elif args.cam == 'CLAM':
         cam_object = CLAM(project_path, classifier_path, exp_name, encoder_model_type)
     print("============== Start Testing Tumor ===============")
-    test_id = ['00183-66', '00300-98', '00459-66', '00472-52', '01119-42', '01232-108', '01284-113', '01388-118', '01468-50', '01573-101']
+    test_id = ['00183-66', '00300-98', '00459-66', '00472-52', '01119-42', '01232-108', '01284-113', '01388-118', '01468-50', '01573-101',
+     '01612-100', '01560-97', '01486-92', '01303-97', '01189-72']
+    normal_id = ['01651-100', "01582-121"]
     tumor_new_path = []
     for path in tumor_path:
         if path.split(os.path.sep)[-1][:-4] in test_id:
+            tumor_new_path.append(path)
+    for path in normal_path:
+        if path.split(os.path.sep)[-1][:-4] in normal_id:
             tumor_new_path.append(path)
     test_dataset = FeatureDataset(tumor_new_path, seg_path)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=0,

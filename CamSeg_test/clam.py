@@ -35,6 +35,9 @@ class CLAM(object):
         elif encoder_model_type == 'Res50':
             self.encoder = Res50(encoder_path).cuda()
             self.eval_enet = Res50(eval_enet_path).cuda()
+        elif encoder_model_type == 'CNN':
+            self.encoder = CNNModel(encoder_path).cuda()
+            self.eval_enet = CNNModel(eval_enet_path).cuda()
 
         for param in self.encoder.parameters():
             param.requires_grad = False

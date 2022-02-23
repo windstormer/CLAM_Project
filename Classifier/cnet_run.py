@@ -29,6 +29,8 @@ class CNet(object):
                 self.encoder = DeepLabModel(encoder_model_path)
             elif encoder_model_type == 'Res50':
                 self.encoder = Res50(encoder_model_path)
+            elif encoder_model_type == 'CNN':
+                self.encoder = CNNModel(encoder_model_path)
             self.optimizer = optim.Adam(list(self.encoder.parameters())+list(self.decoder.parameters()), lr=self.lr, weight_decay=1e-5)
         else:
             if encoder_model_type == 'UNet':
@@ -39,6 +41,8 @@ class CNet(object):
                 self.encoder = DeepLabModel(encoder_model_path)
             elif encoder_model_type == 'Res50':
                 self.encoder = Res50(encoder_model_path)
+            elif encoder_model_type == 'CNN':
+                self.encoder = CNNModel(encoder_model_path)
             for param in self.encoder.parameters():
                 param.requires_grad = False  
             self.optimizer = optim.Adam(self.decoder.parameters(), lr=self.lr, weight_decay=1e-5)

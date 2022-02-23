@@ -271,3 +271,43 @@ class CModel(nn.Module):
     def forward(self, x):
         pred = self.decoder(x)
         return pred
+
+class CNNModel(nn.Module):
+    def __init__(self, pretrain_path):
+        super(CNNModel, self).__init__()
+
+        self.model = nn.Sequential(
+        nn.Conv2d(3, 128, kernel_size=3, padding=3//2),
+        nn.MaxPool2d(2),
+        nn.Conv2d(128, 128, 3, padding=3//2),
+        nn.BatchNorm2d(128),
+        nn.Conv2d(128, 128, 3, stride=2, padding=3//1),
+        nn.Conv2d(128, 128, 5, padding=5//2),
+        nn.BatchNorm2d(128),
+        nn.Sequential(nn.Conv2d(128, 512, kernel_size=1), nn.ReLU(inplace=True))
+        )
+
+        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
+
+        if pretrain_path != None:
+            print("Model restore from", pretrain_path)
+            state_dict_weights = torch.load(pretrain_path)
+            # print(state_dict_weights.keys())
+            state_dict_init = self.state_dict()
+            new_state_dict = OrderedDict()
+            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
+                name = k_0
+                new_state_dict[name] = v
+                print(k, k_0)
+            self.load_state_dict(new_state_dict, strict=False)
+        else:
+            print("Model from scratch")
+        # projection head
+        # self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
+            
+    def forward(self, x):
+        mask = self.model(x)
+        x = self.gap(mask)
+        feature = torch.flatten(x, start_dim=1)
+
+        return mask, feature
