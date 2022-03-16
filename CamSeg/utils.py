@@ -42,3 +42,16 @@ def print_hist(result_path, img_pixel, threshold, img_name):
     plt.title('Thres: {}'.format(threshold))
     plt.savefig(os.path.join(save_path, "hist.png"))
     plt.close()
+
+def draw_area_hist(all_area, result_path, method):
+    save_path = os.path.join(result_path, "{}_area.png".format(method))
+    bin_x = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
+    plt.hist(all_area, bins=bin_x, color='b', align='mid')
+    plt.ylim(0,70)
+    plt.xticks(bin_x)
+    # plt.xlim(0,0.6)
+    plt.xlabel('Normalized False Area')
+    plt.ylabel('Count')
+    # plt.title('Area of False Positive Cases ({})'.format(method), fontsize=14)
+    plt.savefig(save_path, bbox_inches='tight')
+    plt.close()

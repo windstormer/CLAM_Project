@@ -32,9 +32,9 @@ class ScoreCAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
-        elif encoder_model_type == 'Res50':
-            self.encoder = Res50(encoder_path).cuda()
-            self.eval_enet = Res50(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res34':
+            self.encoder = Res34(encoder_path).cuda()
+            self.eval_enet = Res34(eval_enet_path).cuda()
         elif encoder_model_type == 'CNN':
             self.encoder = CNNModel(encoder_path).cuda()
             self.eval_enet = CNNModel(eval_enet_path).cuda()

@@ -32,9 +32,9 @@ class CLAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
-        elif encoder_model_type == 'Res50':
-            self.encoder = Res50(encoder_path).cuda()
-            self.eval_enet = Res50(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res34':
+            self.encoder = Res34(encoder_path).cuda()
+            self.eval_enet = Res34(eval_enet_path).cuda()
         elif encoder_model_type == 'CNN':
             self.encoder = CNNModel(encoder_path).cuda()
             self.eval_enet = CNNModel(eval_enet_path).cuda()
@@ -93,6 +93,8 @@ class CLAM(object):
                 seg_image = seg_batch[0].permute(1, 2, 0).squeeze(2).numpy()
                 if not os.path.exists(os.path.join(self.result_path, img_name, "feat_map")):
                     os.makedirs(os.path.join(self.result_path, img_name, "feat_map"))
+                # if not os.path.exists(os.path.join(self.result_path, img_name, "masked_image")):
+                #     os.makedirs(os.path.join(self.result_path, img_name, "masked_image"))
                 feat_maps, confidence, _, rep = self.step(case_batch)
                 origin_conf = self.eval_step(case_batch)
                 norm_feat_map = []
@@ -103,6 +105,7 @@ class CLAM(object):
 
                 featured_conf = []
                 norm_feat_map = []
+                # masked_images = []
 
                 for idx, feat_map in enumerate(feat_maps[0]):
                     feat_map = F.interpolate(feat_map.unsqueeze(0).unsqueeze(1), size=img_size, mode='bilinear', align_corners=False)
@@ -115,10 +118,14 @@ class CLAM(object):
                     _, conf, _, _ = self.step(featured_tensor.cuda())
                     featured_conf.append(conf)
                     norm_feat_map.append(feat_map.squeeze(2).numpy())
+                    # masked_images.append(featured_img.numpy())
                 
                 for idx, feat in enumerate(norm_feat_map):
                     heat_feat = self.heatmap_postprocess(feat)
                     io.imsave(os.path.join(self.result_path, img_name, "feat_map", "{}.jpg".format(idx)), img_as_ubyte(heat_feat), check_contrast=False)
+
+                # for idx, masked_image in enumerate(masked_images):
+                #     io.imsave(os.path.join(self.result_path, img_name, "masked_image", "{}.jpg".format(idx)), img_as_ubyte(masked_image), check_contrast=False)
 
                 fc_weight = self.get_cam_weight()
                 norm_feat_map = np.asarray(norm_feat_map)

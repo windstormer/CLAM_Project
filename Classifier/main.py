@@ -82,7 +82,7 @@ if __name__ == '__main__':
     parser.add_argument("--encoder_model_type",
                         type=str,
                         default="Res18",
-                        help="Type of Model [Res18, UNet, DLab, Res50, CNN]")          
+                        help="Type of Model [Res18, UNet, DLab, Res34, CNN]")          
 
     # args parse
     args = parser.parse_args()

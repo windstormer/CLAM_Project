@@ -31,9 +31,9 @@ class CAM(object):
         elif encoder_model_type == 'DLab':
             self.encoder = DeepLabModel(encoder_path).cuda()
             self.eval_enet = DeepLabModel(eval_enet_path).cuda()
-        elif encoder_model_type == 'Res50':
-            self.encoder = Res50(encoder_path).cuda()
-            self.eval_enet = Res50(eval_enet_path).cuda()
+        elif encoder_model_type == 'Res34':
+            self.encoder = Res34(encoder_path).cuda()
+            self.eval_enet = Res34(eval_enet_path).cuda()
         elif encoder_model_type == 'CNN':
             self.encoder = CNNModel(encoder_path).cuda()
             self.eval_enet = CNNModel(eval_enet_path).cuda()
@@ -92,8 +92,10 @@ class CAM(object):
             for img_name, case_batch, seg_batch in test_bar:
                 img_name = img_name[0][:-4]
                 seg_image = seg_batch[0].permute(1, 2, 0).squeeze(2).numpy()
-                if not os.path.exists(os.path.join(self.result_path, img_name)):
-                    os.makedirs(os.path.join(self.result_path, img_name))
+                # if not os.path.exists(os.path.join(self.result_path, img_name)):
+                #     os.makedirs(os.path.join(self.result_path, img_name))
+                if not os.path.exists(os.path.join(self.result_path, img_name, "feat_map")):
+                    os.makedirs(os.path.join(self.result_path, img_name, "feat_map"))
                 feat_maps, confidence, _, rep = self.step(case_batch)
                 origin_conf = self.eval_step(case_batch)
 
@@ -101,20 +103,18 @@ class CAM(object):
                 featured_img = []
                 input_image = case_batch[0].permute(1, 2, 0)
                 img_size = case_batch.shape[2], case_batch.shape[3]
-                norm_feat_map = []
 
-                for idx, feat_map in enumerate(feat_maps[0]):
-                    feat_map = F.interpolate(feat_map.unsqueeze(0).unsqueeze(1), size=img_size, mode='bilinear', align_corners=False)
-                    if (feat_map.max() - feat_map.min()) > 0:
-                        feat_map = (feat_map - feat_map.min()) / (feat_map.max() - feat_map.min())
-                    feat_map = feat_map.permute(0, 2, 3, 1).squeeze(0)
-                    
-                    norm_feat_map.append(feat_map.squeeze(2).numpy())
-                norm_feat_map = np.asarray(norm_feat_map)
+                feat_maps = feat_maps.numpy()
+                feat_maps = feat_maps.squeeze(0)
+                feat_map = np.sum(feat_maps*cam_weight[:, np.newaxis, np.newaxis], axis=0)
 
-                final_map = np.sum(norm_feat_map*cam_weight[:, np.newaxis, np.newaxis], axis=0)
-                final_map = np.maximum(final_map, 0)
-
+                
+                if (feat_map.max() - feat_map.min()) > 0:
+                    feat_map = (feat_map - feat_map.min()) / (feat_map.max() - feat_map.min())
+                feat_map = torch.Tensor(feat_map)
+                final_map = F.interpolate(feat_map.unsqueeze(0).unsqueeze(1), size=img_size, mode='bilinear', align_corners=False)
+                final_map = final_map.squeeze(1).squeeze(0).numpy()
+                final_map = 1-final_map
                 f = final_map
                 first_seg, final_seg = gen_seg_mask(input_image, f, img_name, self.result_path)
                 
@@ -142,6 +142,7 @@ class CAM(object):
                 log_file.writelines("Dice Score: {:.4f} -> {:.4f}\n".format(first_dice, dice))
                 log_file.writelines("IOU Score:  {:.4f} -> {:.4f}\n".format(first_iou, iou))
                 log_file.close()
+
                 final_map = self.heatmap_postprocess(final_map)
                 input_image, mix_image = self.img_fusion(input_image, final_map)
 

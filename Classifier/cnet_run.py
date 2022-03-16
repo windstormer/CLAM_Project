@@ -8,6 +8,7 @@ from models import *
 from utils import *
 from tqdm import tqdm
 from sklearn.metrics import roc_curve, confusion_matrix, roc_auc_score
+# from thop import profile
 
 class CNet(object):
     def __init__(self, epochs, batch_size, learning_rate, train_loader, val_loader, log_path,
@@ -27,8 +28,8 @@ class CNet(object):
                 self.encoder = Res18(encoder_model_path)
             elif encoder_model_type == 'DLab':
                 self.encoder = DeepLabModel(encoder_model_path)
-            elif encoder_model_type == 'Res50':
-                self.encoder = Res50(encoder_model_path)
+            elif encoder_model_type == 'Res34':
+                self.encoder = Res34(encoder_model_path)
             elif encoder_model_type == 'CNN':
                 self.encoder = CNNModel(encoder_model_path)
             self.optimizer = optim.Adam(list(self.encoder.parameters())+list(self.decoder.parameters()), lr=self.lr, weight_decay=1e-5)
@@ -39,14 +40,17 @@ class CNet(object):
                 self.encoder = Res18(encoder_model_path)
             elif encoder_model_type == 'DLab':
                 self.encoder = DeepLabModel(encoder_model_path)
-            elif encoder_model_type == 'Res50':
-                self.encoder = Res50(encoder_model_path)
+            elif encoder_model_type == 'Res34':
+                self.encoder = Res34(encoder_model_path)
             elif encoder_model_type == 'CNN':
                 self.encoder = CNNModel(encoder_model_path)
             for param in self.encoder.parameters():
                 param.requires_grad = False  
             self.optimizer = optim.Adam(self.decoder.parameters(), lr=self.lr, weight_decay=1e-5)
-        
+        # input = torch.randn(1, 3, 240, 240)
+        # flops, params = profile(self.encoder, inputs=(input,))
+        # print('FLOPs = ' + str(flops/1000**3) + 'G')
+        # print('Params = ' + str(params/1000**2) + 'M')
         if len(gpuid) > 1:
             self.encoder = torch.nn.DataParallel(self.encoder, device_ids=gpuid)
         self.encoder = self.encoder.cuda()
@@ -102,7 +106,7 @@ class CNet(object):
             log_file.writelines(
                 "Epoch {:4d}/{:4d} | Val Loss: {}, Val Acc: {}, AUC: {}, Sensitivity: {}, Specificity: {}\n"
                 .format(epoch, self.epochs, val_loss, val_acc, val_auc, sensitivity, specificity))
-            
+            print(self.encoder.state_dict().keys())
             cur_score = val_auc
             if cur_score > best_score:
                 best_score = cur_score

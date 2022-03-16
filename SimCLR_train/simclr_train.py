@@ -24,8 +24,8 @@ class SimCLR(object):
             model = Res18()
         elif model_type == "DLab":
             model = DeepLabModel()
-        elif model_type == "Res50":
-            model = Res50()
+        elif model_type == "Res34":
+            model = Res34()
         elif model_type == "CNN":
             model = CNNModel()
         # model = SSLModel(None)

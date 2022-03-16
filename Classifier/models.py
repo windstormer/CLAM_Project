@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models import resnet18, resnet50
+from torchvision.models import resnet18, resnet34
 from collections import OrderedDict
 from torchvision.models.segmentation import deeplabv3_resnet50
 
@@ -194,17 +194,13 @@ class DeepLabModel(nn.Module):
         # out = self.g(feature)
         return feature
 
-class Res50(nn.Module):
+class Res34(nn.Module):
     def __init__(self, pretrain_path=None):
-        super(Res50, self).__init__()
+        super(Res34, self).__init__()
 
-        resnet = resnet50(pretrained=False, norm_layer=nn.InstanceNorm2d)
-        self.f = nn.Sequential(*list(resnet.children())[:-2])
-        self.outc = nn.Sequential(nn.Conv2d(2048, 512, kernel_size=1), nn.ReLU(inplace=True))
+        resnet = resnet34(pretrained=False, norm_layer=nn.InstanceNorm2d)
+        self.f = nn.Sequential(*list(resnet.children())[:-1])
 
-        self.gap = nn.AdaptiveAvgPool2d(output_size=(1,1))
-        # projection head
-        # self.g = nn.Sequential(nn.Linear(512, 512, bias=False), nn.ReLU(inplace=True), nn.Linear(512, 256, bias=True))
         if pretrain_path != None:
             print("Model restore from", pretrain_path)
             state_dict_weights = torch.load(pretrain_path)
@@ -221,10 +217,7 @@ class Res50(nn.Module):
             
     def forward(self, x):
         x = self.f(x)
-        x = self.outc(x)
-        x = self.gap(x)
         feature = torch.flatten(x, start_dim=1)
-        # out = self.g(feature)
         return feature
 
 

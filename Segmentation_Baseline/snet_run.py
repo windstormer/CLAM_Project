@@ -8,6 +8,7 @@ from models import *
 from utils import *
 from tqdm import tqdm
 import torch
+from thop import profile
 # from sklearn.metrics import roc_curve, confusion_matrix, roc_auc_score
 
 class SNet(object):
@@ -21,7 +22,10 @@ class SNet(object):
         self.lr = learning_rate
         # self.encoder = UNetModel()
         self.encoder = UNet(n_channels=1, n_classes=1, bilinear=True)
-        
+        input = torch.randn(1, 1, 240, 240)
+        flops, params = profile(self.encoder, inputs=(input,))
+        print('FLOPs = ' + str(flops/1000**3) + 'G')
+        print('Params = ' + str(params/1000**2) + 'M')
         
         if len(gpuid) > 1:
             self.encoder = torch.nn.DataParallel(self.encoder, device_ids=gpuid)
@@ -247,7 +251,7 @@ class SNet(object):
         dice_batch = np.asarray(dice_batch)
         iou_batch = np.asarray(iou_batch)
         return dice_batch.mean(), iou_batch.mean(), dice_batch.std(), iou_batch.std()
-        # return dice_batch, iou_batch
+        # return dice_batch, iou_batch, dice_batch.std(), iou_batch.std()
 
     def compute_dice(self, gt, gen):
         # print(gen.dtype, gt.dtype)
